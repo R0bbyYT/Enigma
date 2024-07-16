@@ -29,12 +29,10 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import com.google.common.collect.Lists;
+import org.jetbrains.annotations.ApiStatus;
 
 import cuchaz.enigma.gui.panels.EditorPanel;
 import cuchaz.enigma.network.packet.SetClassNameC2SPacket;
-
-import org.jetbrains.annotations.ApiStatus;
-
 import cuchaz.enigma.Enigma;
 import cuchaz.enigma.EnigmaProfile;
 import cuchaz.enigma.EnigmaProject;

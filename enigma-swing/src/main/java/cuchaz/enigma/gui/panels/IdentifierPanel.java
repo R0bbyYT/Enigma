@@ -89,6 +89,7 @@ public class IdentifierPanel {
 
 		if (this.nameField != null) {
 			String currentValue = this.nameField.getText();
+
 			if (this.deobfEntry != null && currentValue.equals(this.deobfEntry.getName())) {
 				return;
 			}
