@@ -24,11 +24,6 @@ public class ObfPanel extends JPanel {
 		Comparator<ClassEntry> obfClassComparator = (a, b) -> {
 			String aname = a.getFullName();
 			String bname = b.getFullName();
-
-			if (aname.length() != bname.length()) {
-				return aname.length() - bname.length();
-			}
-
 			return aname.compareTo(bname);
 		};
 
