@@ -40,6 +40,7 @@ public abstract class EnigmaServer {
 	private ServerSocket socket;
 	private List<Socket> clients = new CopyOnWriteArrayList<>();
 	private Map<Socket, String> usernames = new HashMap<>();
+	private Map<Socket, String> openClasses = new HashMap<>();
 	private Set<Socket> unapprovedClients = new HashSet<>();
 
 	private final byte[] jarChecksum;
@@ -172,8 +173,25 @@ public abstract class EnigmaServer {
 		sendUsernamePacket();
 	}
 
+	public void updateUsernames() {
+		this.sendUsernamePacket();
+	}
+
 	private void sendUsernamePacket() {
-		List<String> usernames = new ArrayList<>(this.usernames.values());
+		List<String> usernames = new ArrayList<>();
+
+		for (Map.Entry<Socket, String> entry : this.usernames.entrySet()) {
+			String className = this.openClasses.get(entry.getKey());
+
+			String username = entry.getValue();
+
+			if (className != null && !className.isBlank()) {
+				username += " (" + className + ")";
+			}
+
+			usernames.add(username);
+		}
+
 		Collections.sort(usernames);
 		sendToAll(new UserListS2CPacket(usernames));
 	}
@@ -304,5 +322,9 @@ public abstract class EnigmaServer {
 	public void sendMessage(Message message) {
 		log(String.format("[MSG] %s", message.translate()));
 		sendToAll(new MessageS2CPacket(message));
+	}
+
+	public void setClassName(Socket client, String className) {
+		this.openClasses.put(client, className);
 	}
 }

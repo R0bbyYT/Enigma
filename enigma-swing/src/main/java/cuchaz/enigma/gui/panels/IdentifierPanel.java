@@ -87,6 +87,13 @@ public class IdentifierPanel {
 	public void refreshReference() {
 		this.deobfEntry = entry == null ? null : gui.getController().project.getMapper().deobfuscate(this.entry);
 
+		if (this.nameField != null) {
+			String currentValue = this.nameField.getText();
+			if (this.deobfEntry != null && currentValue.equals(this.deobfEntry.getName())) {
+				return;
+			}
+		}
+
 		this.nameField = null;
 
 		TableHelper th = new TableHelper(this.ui, this.entry, this.gui);

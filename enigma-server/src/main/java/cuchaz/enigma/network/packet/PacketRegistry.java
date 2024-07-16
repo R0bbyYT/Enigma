@@ -28,6 +28,7 @@ public class PacketRegistry {
 		registerC2S(1, ConfirmChangeC2SPacket.class, ConfirmChangeC2SPacket::new);
 		registerC2S(6, MessageC2SPacket.class, MessageC2SPacket::new);
 		registerC2S(7, EntryChangeC2SPacket.class, EntryChangeC2SPacket::new);
+		registerC2S(20, SetClassNameC2SPacket.class, SetClassNameC2SPacket::new);
 
 		registerS2C(0, KickS2CPacket.class, KickS2CPacket::new);
 		registerS2C(1, SyncMappingsS2CPacket.class, SyncMappingsS2CPacket::new);

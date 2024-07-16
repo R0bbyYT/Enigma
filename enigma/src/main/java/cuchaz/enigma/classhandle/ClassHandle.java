@@ -103,4 +103,13 @@ public interface ClassHandle extends AutoCloseable {
 	 */
 	@Override
 	void close();
+
+	default String getName() {
+		ClassEntry ref = this.getDeobfRef();
+		if (ref == null) {
+			ref = this.getRef();
+		}
+
+		return ref == null ? "Unknown" : ref.getName();
+	}
 }

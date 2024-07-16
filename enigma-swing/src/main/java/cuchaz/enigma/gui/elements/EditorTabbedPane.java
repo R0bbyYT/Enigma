@@ -87,7 +87,7 @@ public class EditorTabbedPane {
 
 		if (editorPanel != null) {
 			this.openFiles.setSelectedComponent(this.editors.get(entry).getUi());
-			this.gui.showStructure(editorPanel);
+			this.gui.getController().showEditor(editorPanel);
 		}
 
 		return editorPanel;
@@ -96,7 +96,7 @@ public class EditorTabbedPane {
 	public void closeEditor(EditorPanel ed) {
 		this.openFiles.remove(ed.getUi());
 		this.editors.inverse().remove(ed);
-		this.gui.showStructure(this.getActiveEditor());
+		this.gui.getController().showActiveEditor();
 		ed.destroy();
 	}
 
@@ -151,7 +151,7 @@ public class EditorTabbedPane {
 			}
 		}
 
-		this.gui.showStructure(this.getActiveEditor());
+		this.gui.getController().showActiveEditor();
 	}
 
 	public void retranslateUi() {

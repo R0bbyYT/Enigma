@@ -29,6 +29,10 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import com.google.common.collect.Lists;
+
+import cuchaz.enigma.gui.panels.EditorPanel;
+import cuchaz.enigma.network.packet.SetClassNameC2SPacket;
+
 import org.jetbrains.annotations.ApiStatus;
 
 import cuchaz.enigma.Enigma;
@@ -511,7 +515,7 @@ public class GuiController implements ClientPacketHandler {
 		ValidationContext vc = new ValidationContext();
 		vc.setActiveElement(PrintValidatable.INSTANCE);
 		this.applyChange0(vc, change);
-		gui.showStructure(gui.getActiveEditor());
+		this.showActiveEditor();
 
 		return vc.canProceed();
 	}
@@ -528,7 +532,7 @@ public class GuiController implements ClientPacketHandler {
 
 	public void applyChange(ValidationContext vc, EntryChange<?> change) {
 		this.applyChange0(vc, change);
-		gui.showStructure(gui.getActiveEditor());
+		this.showActiveEditor();
 
 		if (!vc.canProceed()) {
 			return;
@@ -562,7 +566,22 @@ public class GuiController implements ClientPacketHandler {
 			this.chp.invalidateJavadoc(target.getTopLevelClass());
 		}
 
-		gui.showStructure(gui.getActiveEditor());
+		this.showActiveEditor();
+	}
+
+	public void showActiveEditor() {
+		this.showEditor(this.gui.getActiveEditor());
+	}
+
+	public void showEditor(EditorPanel editor) {
+		if (editor == null) {
+			this.gui.getController().sendPacket(new SetClassNameC2SPacket(""));
+			return;
+		}
+
+		this.gui.showStructure(editor);
+		ClassHandle handle = editor.getClassHandle();
+		this.gui.getController().sendPacket(new SetClassNameC2SPacket(handle == null ? "Unknown" : handle.getName()));
 	}
 
 	public void openStats(Set<StatsMember> includedMembers, String topLevelPackage, boolean includeSynthetic) {
