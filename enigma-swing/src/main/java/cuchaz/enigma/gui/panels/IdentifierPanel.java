@@ -7,6 +7,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
@@ -45,6 +46,10 @@ public class IdentifierPanel {
 
 	private final ValidationContext vc = new ValidationContext();
 
+	private String baseText;
+	private Entry<?> oldEntry;
+	private Entry<?> oldDeobfEntry;
+
 	public IdentifierPanel(Gui gui) {
 		this.gui = gui;
 
@@ -66,6 +71,8 @@ public class IdentifierPanel {
 
 		this.nameField.startEditing();
 
+		this.baseText = this.nameField.getText();
+
 		return true;
 	}
 
@@ -76,6 +83,7 @@ public class IdentifierPanel {
 
 		this.nameField.startEditing();
 		this.nameField.setEditText(text);
+		this.baseText = text;
 
 		return true;
 	}
@@ -87,14 +95,19 @@ public class IdentifierPanel {
 	public void refreshReference() {
 		this.deobfEntry = entry == null ? null : gui.getController().project.getMapper().deobfuscate(this.entry);
 
-		if (this.nameField != null) {
-			String currentValue = this.nameField.getText();
 
-			if (this.deobfEntry != null && currentValue.equals(this.deobfEntry.getName())) {
-				return;
+		if (Objects.equals(this.oldDeobfEntry, this.deobfEntry) && Objects.equals(this.oldEntry, this.entry)) {
+			if (this.nameField != null) {
+				String currentText = this.nameField.getText();
+
+				if (this.baseText != null && !currentText.equals(this.baseText)) {
+					return;
+				}
 			}
 		}
 
+		this.oldDeobfEntry = this.deobfEntry;
+		this.oldEntry = this.entry;
 		this.nameField = null;
 
 		TableHelper th = new TableHelper(this.ui, this.entry, this.gui);
@@ -110,6 +123,9 @@ public class IdentifierPanel {
 				ClassEntry ce = (ClassEntry) deobfEntry;
 				String name = ce.isInnerClass() ? ce.getName() : ce.getFullName();
 				this.nameField = th.addRenameTextField(EditableType.CLASS, name);
+				if (this.nameField != null) {
+					this.baseText = this.nameField.getText();
+				}
 
 				if (renamed) {
 					th.addCopiableStringRow(I18n.translate("info_panel.identifier.original_name"), entry.getName());
@@ -119,6 +135,9 @@ public class IdentifierPanel {
 			} else if (deobfEntry instanceof FieldEntry) {
 				FieldEntry fe = (FieldEntry) deobfEntry;
 				this.nameField = th.addRenameTextField(EditableType.FIELD, fe.getName());
+				if (this.nameField != null) {
+					this.baseText = this.nameField.getText();
+				}
 
 				if (renamed) {
 					th.addCopiableStringRow(I18n.translate("info_panel.identifier.original_name"), entry.getName());
@@ -136,9 +155,15 @@ public class IdentifierPanel {
 					if (ce != null) {
 						String name = ce.isInnerClass() ? ce.getName() : ce.getFullName();
 						this.nameField = th.addRenameTextField(EditableType.CLASS, name);
+						if (this.nameField != null) {
+							this.baseText = this.nameField.getText();
+						}
 					}
 				} else {
 					this.nameField = th.addRenameTextField(EditableType.METHOD, me.getName());
+					if (this.nameField != null) {
+						this.baseText = this.nameField.getText();
+					}
 				}
 
 				if (renamed) {
@@ -162,6 +187,9 @@ public class IdentifierPanel {
 				}
 
 				this.nameField = th.addRenameTextField(type, lve.getName());
+				if (this.nameField != null) {
+					this.baseText = this.nameField.getText();
+				}
 
 				if (renamed) {
 					th.addCopiableStringRow(I18n.translate("info_panel.identifier.original_name"), entry.getName());
@@ -191,7 +219,7 @@ public class IdentifierPanel {
 				@Override
 				public boolean tryStopEditing(ConvertingTextField field, boolean abort) {
 					if (abort) {
-						return true;
+						return false;
 					}
 
 					vc.reset();

@@ -89,7 +89,8 @@ public class GuiUtil {
 
 	public static String getClipboard() {
 		try {
-			return (String) Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
+			String data = (String) Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
+			return data.replace(".", "/");
 		} catch (UnsupportedFlavorException | IOException e) {
 			return "";
 		}

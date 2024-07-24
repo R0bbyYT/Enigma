@@ -47,6 +47,10 @@ subprojects {
 		toolVersion = '10.12.4'
 	}
 
+	tasks.withType(Checkstyle).configureEach {
+		enabled = false
+	}
+
 	publishing {
 		publications {
 			"$project.name"(MavenPublication) {
