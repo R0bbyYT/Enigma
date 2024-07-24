@@ -60,7 +60,7 @@ public class TestReadWriteCycle {
 		//remove the auto created file
 		tempFile.delete();
 
-		mappingFormat.write(testMappings, tempFile.toPath(), ProgressListener.none(), parameters);
+		mappingFormat.write(testMappings, tempFile.toPath(), ProgressListener.none(), parameters, null);
 		Assert.assertTrue("Written file not created", tempFile.exists());
 
 		EntryTree<EntryMapping> loadedMappings = mappingFormat.read(tempFile.toPath(), ProgressListener.none(), parameters, null);

@@ -144,7 +144,7 @@ public class DedicatedEnigmaServer extends EnigmaServer {
 	}
 
 	private void saveMappings() {
-		mappingFormat.write(getMappings().getObfToDeobf(), getMappings().takeMappingDelta(), mappingsFile, ProgressListener.none(), profile.getMappingSaveParameters());
+		mappingFormat.write(getMappings().getObfToDeobf(), getMappings().takeMappingDelta(), mappingsFile, ProgressListener.none(), profile.getMappingSaveParameters(), null);
 		log.flush();
 	}
 

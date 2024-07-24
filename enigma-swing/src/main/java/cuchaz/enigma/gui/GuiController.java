@@ -223,9 +223,9 @@ public class GuiController implements ClientPacketHandler {
 			loadedMappingPath = path;
 
 			if (saveAll) {
-				format.write(mapper.getObfToDeobf(), path, progress, saveParameters);
+				format.write(mapper.getObfToDeobf(), path, progress, saveParameters, this::getClassInheritance);
 			} else {
-				format.write(mapper.getObfToDeobf(), delta, path, progress, saveParameters);
+				format.write(mapper.getObfToDeobf(), delta, path, progress, saveParameters, this::getClassInheritance);
 			}
 		});
 	}

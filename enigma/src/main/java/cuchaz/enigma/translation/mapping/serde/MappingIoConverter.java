@@ -2,12 +2,18 @@ package cuchaz.enigma.translation.mapping.serde;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 import javax.annotation.Nullable;
+import javax.swing.tree.TreeNode;
+
+import cuchaz.enigma.analysis.ClassInheritanceTreeNode;
 
 import org.jetbrains.annotations.ApiStatus;
 import net.fabricmc.mappingio.MappedElementKind;
@@ -37,15 +43,24 @@ import cuchaz.enigma.utils.I18n;
 
 @ApiStatus.Internal
 public class MappingIoConverter {
+
+	private static List<EntryTreeNode<EntryMapping>> classes = new ArrayList<>();
+
 	public static VisitableMappingTree toMappingIo(EntryTree<EntryMapping> mappings, ProgressListener progress) {
-		return toMappingIo(mappings, progress, "intermediary", "named");
+		return toMappingIo(mappings, progress, null);
 	}
 
-	public static VisitableMappingTree toMappingIo(EntryTree<EntryMapping> mappings, ProgressListener progress, String fromNs, String toNs) {
+	public static VisitableMappingTree toMappingIo(EntryTree<EntryMapping> mappings, ProgressListener progress, Function<ClassEntry, ClassInheritanceTreeNode> inheritanceFunction) {
+		return toMappingIo(mappings, progress, "intermediary", "named", inheritanceFunction);
+	}
+
+	public static VisitableMappingTree toMappingIo(EntryTree<EntryMapping> mappings, ProgressListener progress, String fromNs, String toNs, Function<ClassEntry, ClassInheritanceTreeNode> inheritanceFunction) {
 		try {
 			List<EntryTreeNode<EntryMapping>> classes = StreamSupport.stream(mappings.spliterator(), false)
 					.filter(node -> node.getEntry() instanceof ClassEntry)
 					.toList();
+
+			MappingIoConverter.classes.addAll(classes);
 
 			progress.init(classes.size(), I18n.translate("progress.mappings.converting.to_mappingio"));
 			int stepsDone = 0;
@@ -55,17 +70,29 @@ public class MappingIoConverter {
 
 			for (EntryTreeNode<EntryMapping> classNode : classes) {
 				progress.step(++stepsDone, classNode.getEntry().getFullName());
-				writeClass(classNode, mappings, mappingTree);
+				writeClass(classNode, mappings, mappingTree, inheritanceFunction);
 			}
 
 			mappingTree.visitEnd();
 			return mappingTree;
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
+		} finally {
+			MappingIoConverter.classes.clear();
 		}
 	}
 
-	private static void writeClass(EntryTreeNode<EntryMapping> classNode, EntryMap<EntryMapping> oldMappingTree, VisitableMappingTree newMappingTree) throws IOException {
+	private static EntryTreeNode<EntryMapping> findMapping(ClassEntry entry) {
+		for (EntryTreeNode<EntryMapping> classNode : classes) {
+			if (classNode.getEntry().equals(entry)) {
+				return classNode;
+			}
+		}
+
+		return null;
+	}
+
+	private static void writeClass(EntryTreeNode<EntryMapping> classNode, EntryMap<EntryMapping> oldMappingTree, VisitableMappingTree newMappingTree, Function<ClassEntry, ClassInheritanceTreeNode> inheritanceFunction) throws IOException {
 		ClassEntry classEntry = (ClassEntry) classNode.getEntry();
 		EntryMapping mapping = oldMappingTree.get(classEntry);
 		Deque<String> parts = new LinkedList<>();
@@ -75,6 +102,8 @@ public class MappingIoConverter {
 		if (mapping != null) {
 			newMappingTree.visitComment(MappedElementKind.CLASS, mapping.javadoc());
 		}
+
+		ClassInheritanceTreeNode inheritedTreeNode = inheritanceFunction == null ? null : (ClassInheritanceTreeNode) inheritanceFunction.apply(classEntry).getParent();
 
 		do {
 			mapping = oldMappingTree.get(classEntry);
@@ -91,13 +120,37 @@ public class MappingIoConverter {
 		String mappedName = String.join("$", parts);
 		newMappingTree.visitDstName(MappedElementKind.CLASS, 0, mappedName);
 
-		for (EntryTreeNode<EntryMapping> child : classNode.getChildNodes()) {
+		writeChildren(classNode, newMappingTree, false);
+
+
+		if (inheritedTreeNode != null) {
+			EntryTreeNode<EntryMapping> inheritedMappingNode = findMapping(inheritedTreeNode.getClassEntry());
+			while (inheritedMappingNode != null) {
+				writeChildren(inheritedMappingNode, newMappingTree, true);
+				TreeNode parent = inheritedTreeNode.getParent();
+
+				if (parent == null) {
+					break;
+				}
+
+				if (parent instanceof ClassInheritanceTreeNode classInheritanceTreeNode) {
+					inheritedMappingNode = findMapping(classInheritanceTreeNode.getClassEntry());
+					inheritedTreeNode = classInheritanceTreeNode;
+				}
+			}
+		}
+
+	}
+
+	private static void writeChildren(EntryTreeNode<EntryMapping> classNode, VisitableMappingTree mappingTree, boolean skipFields) throws IOException {
+		Collection<? extends EntryTreeNode<EntryMapping>> children = classNode.getChildNodes();
+		for (EntryTreeNode<EntryMapping> child : children) {
 			Entry<?> entry = child.getEntry();
 
-			if (entry instanceof FieldEntry) {
-				writeField(child, newMappingTree);
+			if (!skipFields && entry instanceof FieldEntry) {
+				writeField(child, mappingTree);
 			} else if (entry instanceof MethodEntry) {
-				writeMethod(child, newMappingTree);
+				writeMethod(child, mappingTree);
 			}
 		}
 	}

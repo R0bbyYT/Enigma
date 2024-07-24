@@ -50,7 +50,7 @@ public final class MappingCommandsUtil {
 
 	public static void write(EntryTree<EntryMapping> mappings, String type, Path path, MappingSaveParameters saveParameters) {
 		if (type.equals("enigma")) {
-			MappingFormat.ENIGMA_DIRECTORY.write(mappings, path, ProgressListener.none(), saveParameters);
+			MappingFormat.ENIGMA_DIRECTORY.write(mappings, path, ProgressListener.none(), saveParameters, null);
 			return;
 		}
 
@@ -67,7 +67,7 @@ public final class MappingCommandsUtil {
 			}
 
 			try {
-				VisitableMappingTree tree = MappingIoConverter.toMappingIo(mappings, ProgressListener.none(), split[1], split[2]);
+				VisitableMappingTree tree = MappingIoConverter.toMappingIo(mappings, ProgressListener.none(), split[1], split[2], null);
 				tree.accept(MappingWriter.create(path, net.fabricmc.mappingio.format.MappingFormat.TINY_2_FILE));
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
@@ -89,7 +89,7 @@ public final class MappingCommandsUtil {
 			}
 
 			try {
-				VisitableMappingTree tree = MappingIoConverter.toMappingIo(mappings, ProgressListener.none(), split[1], split[2]);
+				VisitableMappingTree tree = MappingIoConverter.toMappingIo(mappings, ProgressListener.none(), split[1], split[2], null);
 				tree.accept(MappingWriter.create(path, net.fabricmc.mappingio.format.MappingFormat.TINY_FILE));
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
@@ -107,7 +107,7 @@ public final class MappingCommandsUtil {
 		}
 
 		if (format != null) {
-			format.write(mappings, path, ProgressListener.none(), saveParameters);
+			format.write(mappings, path, ProgressListener.none(), saveParameters, null);
 			return;
 		}
 

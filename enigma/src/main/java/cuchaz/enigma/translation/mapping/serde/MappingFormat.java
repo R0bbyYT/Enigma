@@ -5,8 +5,13 @@ import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.annotation.Nullable;
+
+import cuchaz.enigma.analysis.ClassInheritanceTreeNode;
+
+import cuchaz.enigma.translation.representation.entry.ClassEntry;
 
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.MappingWriter;
@@ -62,11 +67,11 @@ public enum MappingFormat {
 		this.hasMappingIoWriter = hasMappingIoWriter;
 	}
 
-	public void write(EntryTree<EntryMapping> mappings, Path path, ProgressListener progressListener, MappingSaveParameters saveParameters) {
-		write(mappings, MappingDelta.added(mappings), path, progressListener, saveParameters);
+	public void write(EntryTree<EntryMapping> mappings, Path path, ProgressListener progressListener, MappingSaveParameters saveParameters, Function<ClassEntry, ClassInheritanceTreeNode> inheritanceFunction) {
+		write(mappings, MappingDelta.added(mappings), path, progressListener, saveParameters, inheritanceFunction);
 	}
 
-	public void write(EntryTree<EntryMapping> mappings, MappingDelta<EntryMapping> delta, Path path, ProgressListener progressListener, MappingSaveParameters saveParameters) {
+	public void write(EntryTree<EntryMapping> mappings, MappingDelta<EntryMapping> delta, Path path, ProgressListener progressListener, MappingSaveParameters saveParameters, Function<ClassEntry, ClassInheritanceTreeNode> inheritanceFunction) {
 		if (!hasMappingIoWriter || !useMappingIo()) {
 			if (writer == null) {
 				throw new IllegalStateException(name() + " does not support writing");
@@ -85,7 +90,7 @@ public enum MappingFormat {
 					mappings = MappingOperations.invert(mappings);
 				}
 
-				VisitableMappingTree tree = MappingIoConverter.toMappingIo(mappings, progressListener);
+				VisitableMappingTree tree = MappingIoConverter.toMappingIo(mappings, progressListener, inheritanceFunction);
 				progressListener.init(1, I18n.translate("progress.mappings.writing"));
 				progressListener.step(1, null); // Reset message
 
